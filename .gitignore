@@ -1,0 +1,10 @@
+# Python meta
+__pycache__/
+venv/
+
+# macOS
+.DS_Store
+
+# Emacs
+*~
+\#*\#
