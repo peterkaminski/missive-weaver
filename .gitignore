@@ -1,3 +1,6 @@
+# secrets
+env.sh
+
 # Python meta
 __pycache__/
 venv/

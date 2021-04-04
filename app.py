@@ -1,30 +1,26 @@
 from flask import Flask, redirect, render_template, request
-import json
-
-# GitHub interface
-from github import Github # pip install PyGithub
+import os
+import requests
 
 app = Flask(__name__)
 app.config['FLASK_DEBUG'] = True
 app.config['STATIC_FOLDER'] = '/static'
 app.config['TEMPLATES_FOLDER'] = '/templates'
 
-g = Github()
+gh_token = os.getenv('GITHUB_TOKEN')
+
+def gh_contents(owner, repo, path):
+    r = requests.get(
+        f"https://api.github.com/repos/{owner}/{repo}/contents/{path}",
+        {'Authorization': f'token {gh_token}'}
+    )
+    return r.json()
 
 @app.route("/")
 def home():
-
-    repo_files = []
-    repo = g.get_repo("PyGithub/PyGithub")
-    contents = repo.get_contents("")
-    while contents:
-        file_content = contents.pop(0)
-        if file_content.type == "dir":
-            contents.extend(repo.get_contents(file_content.path))
-        else:
-            repo_files.append(file_content)
+    contents = gh_contents('massive-wiki', 'massive-wiki', '')
 
     return render_template(
         'home.html',
-        repo_files = repo_files
+        contents = contents
     )

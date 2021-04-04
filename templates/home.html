@@ -4,8 +4,8 @@
   </head>
   <body>
     <div>
-      {% for repo_file in repo_files %}
-        <div>{{repo_file.name}}</div>
+      {% for item in contents %}
+        <div><a href="{{item.download_url}}">{{item.name}}</a> ({{item.type}})</div>
       {% endfor %}
     </div>
   </body>
