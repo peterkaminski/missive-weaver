@@ -25,15 +25,6 @@ def gh_rate_limit():
     )
     return r.json()
 
-@app.route("/")
-def home():
-    contents = gh_contents('massive-wiki', 'massive-wiki', '')
-
-    return render_template(
-        'home.html',
-        contents = contents
-    )
-
 @app.route("/admin")
 def admin():
     return render_template(
@@ -57,3 +48,14 @@ def admin_rate_limit():
     )
     response.mimetype = "text/plain"
     return response
+
+@app.route("/wiki/<user>/<repo>/")
+def wiki(user, repo):
+    print(f'user:{user}, repo:{repo}')
+    contents = gh_contents(user, repo, '')
+
+    return render_template(
+        'wiki.html',
+        contents = contents
+    )
+
