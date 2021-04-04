@@ -51,9 +51,13 @@ def admin_rate_limit():
     return response
 
 @app.route("/wiki/<user>/<repo>/")
-@app.route("/wiki/<user>/<repo>/<path>")
+@app.route("/wiki/<user>/<repo>/<path:path>")
 def wiki(user, repo, path=''):
     contents = gh_contents(user, repo, path)
+
+    print(f'user: {user}')
+    print(f'repo: {repo}')
+    print(f'path: {path}')
 
     if 'message' in contents:
         response = make_response(
@@ -69,6 +73,13 @@ def wiki(user, repo, path=''):
         files = []
         dirs = []
         for item in contents:
+            if item['type']=='dir' and not item['name'].startswith('.'):
+                dir = {}
+                dir['name'] = item['name'] + '/'
+                dir['download_url'] = item['url']
+                if item['url'].startswith('https://api.github.com/repos/'):
+                    dir['download_url'] = f'/wiki/{user}/{repo}/{item["url"].split("/", 7)[7]}'
+                dirs.append(dir)
             if item['type']=='file' and item['name'].endswith('.md'):
                 file = {}
                 file['name'] = item['name'][:-3] # remove '.md'
@@ -77,9 +88,13 @@ def wiki(user, repo, path=''):
                 else:
                     file['download_url'] = item['download_url']
                 files.append(file)
+# /wiki/massive-wiki/massive-sandbox/MaSVF%20Wiki%20Stuff/HackMD%20and%20GitHub%20Sync.md
+            else:
+                # ignored files and dot-dirs
+                pass
         return render_template(
             'wiki.html',
-            items = files
+            items = dirs+files
         )
     elif isinstance(contents, dict):
         # we're looking at a file
@@ -101,4 +116,11 @@ def wiki(user, repo, path=''):
     else:
         # shouldn't get here
         exit(1)
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    return render_template(
+        'index.html'
+    )
 
