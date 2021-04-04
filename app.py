@@ -1,4 +1,6 @@
-from flask import Flask, redirect, render_template, request
+from flask import Flask, make_response, redirect, render_template, request
+from hashlib import sha256
+import json
 import os
 import requests
 
@@ -12,7 +14,14 @@ gh_token = os.getenv('GITHUB_TOKEN')
 def gh_contents(owner, repo, path):
     r = requests.get(
         f"https://api.github.com/repos/{owner}/{repo}/contents/{path}",
-        {'Authorization': f'token {gh_token}'}
+        headers={'Authorization': f'token {gh_token}'}
+    )
+    return r.json()
+
+def gh_rate_limit():
+    r = requests.get(
+        f"https://api.github.com/rate_limit",
+        headers={'Authorization': f'token {gh_token}'}
     )
     return r.json()
 
@@ -24,3 +33,27 @@ def home():
         'home.html',
         contents = contents
     )
+
+@app.route("/admin")
+def admin():
+    return render_template(
+        'admin-index.html'
+    )
+
+@app.route("/admin/token")
+def admin_token():
+    response = make_response(
+        sha256(gh_token.encode('utf-8')).hexdigest(),
+        200
+    )
+    response.mimetype = "text/plain"
+    return response
+
+@app.route("/admin/rate_limit")
+def admin_rate_limit():
+    response = make_response(
+        json.dumps(gh_rate_limit(), indent=2),
+        200
+    )
+    response.mimetype = "text/plain"
+    return response
