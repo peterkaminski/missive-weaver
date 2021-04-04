@@ -54,7 +54,17 @@ def admin_rate_limit():
 @app.route("/wiki/<user>/<repo>/<path>")
 def wiki(user, repo, path=''):
     contents = gh_contents(user, repo, path)
+
+    if 'message' in contents:
+        response = make_response(
+            f'Error: {contents["message"]}',
+            502
+        )
+        response.mimetype = "text/plain"
+        return response
+
     if isinstance(contents, list):
+        # we're looking at a directory
         items = []
         files = []
         dirs = []
@@ -62,9 +72,17 @@ def wiki(user, repo, path=''):
             if item['type']=='file' and item['name'].endswith('.md'):
                 file = {}
                 file['name'] = item['name'][:-3] # remove '.md'
-                file['download_url'] = item['download_url']
+                if item['download_url'].startswith('https://raw.githubusercontent.com/'):
+                    file['download_url'] = f'/wiki/{user}/{repo}/{item["download_url"].split("/", 6)[6]}'
+                else:
+                    file['download_url'] = item['download_url']
                 files.append(file)
+        return render_template(
+            'wiki.html',
+            items = files
+        )
     elif isinstance(contents, dict):
+        # we're looking at a file
         if contents['encoding'] != 'base64':
             response = make_response(
                 f'Unknown encoding {contents["encoding"]}',
@@ -83,11 +101,4 @@ def wiki(user, repo, path=''):
     else:
         # shouldn't get here
         exit(1)
-
-# https://raw.githubusercontent.com/Massive-Wiki/massive-sandbox/main/Trying%20Vinzent03%20fork%20of%20obsidian-git.md
-
-    return render_template(
-        'wiki.html',
-        items = files
-    )
 
