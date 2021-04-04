@@ -4,7 +4,9 @@
   </head>
   <body>
     <div>
-      Hello, world.
+      {% for repo_file in repo_files %}
+        <div>{{repo_file.name}}</div>
+      {% endfor %}
     </div>
   </body>
 </html>
