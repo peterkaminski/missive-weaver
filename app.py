@@ -5,6 +5,18 @@ import json
 import os
 import requests
 
+import markdown
+from mdx_wikilink_plus.mdx_wikilink_plus import WikiLinkPlusExtension
+md_configs = {
+    'mdx_wikilink_plus': {
+#        'base_url': '/static',
+        'end_url': '.md',
+        'url_case': 'none',
+        'label_case': 'none',
+    },
+}
+md = markdown.Markdown(extensions=['mdx_wikilink_plus'], extension_configs=md_configs)
+
 app = Flask(__name__)
 app.config['FLASK_DEBUG'] = True
 app.config['STATIC_FOLDER'] = '/static'
@@ -88,7 +100,6 @@ def wiki(user, repo, path=''):
                 else:
                     file['download_url'] = item['download_url']
                 files.append(file)
-# /wiki/massive-wiki/massive-sandbox/MaSVF%20Wiki%20Stuff/HackMD%20and%20GitHub%20Sync.md
             else:
                 # ignored files and dot-dirs
                 pass
@@ -108,10 +119,10 @@ def wiki(user, repo, path=''):
         else:
             response = make_response(
 #                f'<a href="{contents["html_url"]}">edit on GitHub</a>\n'+
-                    base64.b64decode(contents["content"]),
+                    md.convert(base64.b64decode(contents["content"]).decode('utf-8')),
                 200
             )
-            response.mimetype = "text/plain"
+            response.mimetype = "text/html"
             return response
     else:
         # shouldn't get here
