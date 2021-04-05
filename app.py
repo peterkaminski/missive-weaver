@@ -11,6 +11,7 @@ md_configs = {
     'mdx_wikilink_plus': {
 #        'base_url': '/static',
         'end_url': '.md',
+        'url_whitespace': '%20',
         'url_case': 'none',
         'label_case': 'none',
     },
