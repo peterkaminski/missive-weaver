@@ -5,7 +5,7 @@ import json
 import os
 import requests
 
-import markdown
+from markdown import Markdown
 from mdx_wikilink_plus.mdx_wikilink_plus import WikiLinkPlusExtension
 md_configs = {
     'mdx_wikilink_plus': {
@@ -16,12 +16,10 @@ md_configs = {
         'label_case': 'none',
     },
 }
-md = markdown.Markdown(extensions=['mdx_wikilink_plus'], extension_configs=md_configs)
+md = Markdown(extensions=['mdx_wikilink_plus'], extension_configs=md_configs)
 
 app = Flask(__name__)
-app.config['FLASK_DEBUG'] = True
-app.config['STATIC_FOLDER'] = '/static'
-app.config['TEMPLATES_FOLDER'] = '/templates'
+app.config.from_object('config')
 
 gh_token = os.getenv('GITHUB_TOKEN')
 
