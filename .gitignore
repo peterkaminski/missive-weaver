@@ -1,6 +1,9 @@
 # secrets
 env.sh
 
+# templates (get from massive-wiki-themes)
+templates
+
 # Python meta
 __pycache__/
 venv/

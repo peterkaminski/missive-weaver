@@ -1,9 +1,11 @@
 import base64
-from flask import Flask, make_response, redirect, render_template, request
+from flask import Flask, make_response, redirect, render_template, request, send_from_directory
 from hashlib import sha256
 import json
 import os
 import requests
+
+from datetime import timezone, datetime
 
 from markdown import Markdown
 from mdx_wikilink_plus.mdx_wikilink_plus import WikiLinkPlusExtension
@@ -61,6 +63,11 @@ def admin_rate_limit():
     response.mimetype = "text/plain"
     return response
 
+@app.route("/mwb-static/<path:path>")
+def mwb_static(path):
+    print(path)
+    return send_from_directory('templates/mwb-static', path)
+
 @app.route("/wiki/<user>/<repo>/")
 @app.route("/wiki/<user>/<repo>/<path:path>")
 def wiki(user, repo, path=''):
@@ -116,11 +123,10 @@ def wiki(user, repo, path=''):
             response.mimetype = "text/plain"
             return response
         else:
-            response = make_response(
-#                f'<a href="{contents["html_url"]}">edit on GitHub</a>\n'+
-                    md.convert(base64.b64decode(contents["content"]).decode('utf-8')),
-                200
-            )
+            build_time = datetime.now(timezone.utc).strftime("%A, %B %d, %Y at %H:%M UTC")
+            markdown_body = md.convert(base64.b64decode(contents["content"]).decode('utf-8'))
+            html = render_template('page.html', build_time=build_time, wiki_title=app.config['WIKI_TITLE'], author=app.config['WIKI_AUTHOR'], repo=app.config['WIKI_REPO'], license=app.config['WIKI_LICENSE'], title="Missive Weaver", markdown_body=markdown_body)
+            response = make_response(html, 200)
             response.mimetype = "text/html"
             return response
     else:
